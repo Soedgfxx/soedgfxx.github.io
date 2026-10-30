@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0614">
+<title>سعود | Soedgfx — مصمم Thumbnails</title>
+<meta name="description" content="أعمال سعود (Soedgfx): تصميم صور مصغّرة للفيديوهات.">
+<link rel="icon" href="images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0614; --glass:rgba(255,255,255,.07); --line:rgba(255,255,255,.12);
+  --ink:#f6f1ff; --muted:#b9a9d6; --accent:#c13bff; --glow:#e58bff;
+  --ios:cubic-bezier(.32,.72,0,1); --pop:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{background:var(--bg);color:var(--ink);font-family:"Readex Pro",Tahoma,Arial,sans-serif;line-height:1.8;font-size:17px;overflow-x:hidden;
+  background-image:radial-gradient(60% 40% at 80% -5%,rgba(193,59,255,.35),transparent 70%),radial-gradient(50% 35% at 5% 45%,rgba(120,40,220,.22),transparent 70%),radial-gradient(60% 40% at 90% 95%,rgba(193,59,255,.22),transparent 70%);
+  background-attachment:fixed}
+body.lock{overflow:hidden}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* floating glass header */
+header{position:fixed;top:max(12px,env(safe-area-inset-top));inset-inline:0;z-index:20;display:flex;justify-content:center;pointer-events:none;animation:drop .9s .1s var(--ios) both}
+.bar{pointer-events:auto;display:flex;align-items:center;gap:22px;padding:8px 10px 8px 22px;border-radius:999px;background:rgba(20,10,36,.45);border:1px solid var(--line);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);transition:background .4s var(--ios),box-shadow .4s var(--ios)}
+.bar.s{background:rgba(20,10,36,.78);box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.bar img{width:38px;height:38px;border-radius:12px;display:block;box-shadow:0 0 18px rgba(193,59,255,.55)}
+nav{display:flex;gap:20px;font-size:15px}
+nav a{text-decoration:none;color:var(--muted);transition:color .25s}
+nav a:hover{color:var(--ink)}
+@keyframes drop{from{opacity:0;transform:translateY(-30px) scale(.9)}}
+
+/* hero */
+.hero{padding:140px 0 60px;min-height:92vh;display:flex;align-items:center}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center;width:100%}
+h1{font-size:clamp(38px,6.4vw,70px);line-height:1.25;font-weight:700}
+h1 .w{display:inline-block;animation:wordIn 1s var(--ios) both;animation-delay:calc(.25s + var(--i)*.09s)}
+@keyframes wordIn{from{opacity:0;filter:blur(14px);transform:translateY(34px) scale(.96)}}
+.hero p{color:var(--muted);margin:20px 0 30px;max-width:34ch;animation:wordIn 1s 1s var(--ios) both}
+.btns{display:flex;gap:12px;flex-wrap:wrap;animation:wordIn 1s 1.15s var(--ios) both}
+.btn{display:inline-block;padding:13px 26px;border-radius:999px;text-decoration:none;font-weight:600;font-size:16px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);transition:transform .45s var(--pop),box-shadow .4s,background .3s}
+.btn:hover{transform:scale(1.05)}
+.btn:active{transform:scale(.94);transition-duration:.12s}
+.btn.main{background:linear-gradient(135deg,#a626ff,#e04bff);border-color:transparent;box-shadow:0 8px 30px rgba(193,59,255,.5)}
+.stack{--y:0;position:relative;aspect-ratio:16/11;width:100%}
+.frame{position:absolute;width:76%;aspect-ratio:16/9;transform:translate3d(0,calc(var(--y)*var(--k)*-1px),0) rotate(var(--rot));will-change:transform}
+.fi{width:100%;height:100%;border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 40px rgba(193,59,255,.18);animation:frameIn 1.3s var(--ios) both;animation-delay:var(--d)}
+.fi img{width:100%;height:100%;object-fit:cover;display:block}
+@keyframes frameIn{from{opacity:0;filter:blur(16px);transform:translateY(80px) scale(.7)}}
+.frame:nth-child(1){top:0;right:0;--rot:4deg;--k:.05;--d:.5s}
+.frame:nth-child(2){top:26%;right:15%;--rot:-3deg;--k:.12;--d:.7s}
+.frame:nth-child(3){top:52%;right:3%;--rot:2deg;--k:.2;--d:.9s}
+
+section{padding:72px 0}
+h2{font-size:clamp(28px,4.4vw,42px);line-height:1.3;margin-bottom:8px}
+.sub{color:var(--muted);margin-bottom:30px}
+
+/* reveal on scroll */
+.js .rv{opacity:0;transform:translateY(40px) scale(.95);filter:blur(10px);transition:opacity .9s var(--ios),transform 1s var(--ios),filter .9s var(--ios);transition-delay:calc(var(--i,0)*90ms)}
+.js .rv.in{opacity:1;transform:none;filter:none}
+
+/* works */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.card{position:relative;aspect-ratio:16/9;border-radius:24px;overflow:hidden;cursor:pointer;border:1px solid var(--line);padding:0;background:#1a0f2e;display:block;width:100%;color:#fff;font:inherit;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.js .card.rv.in{transition:transform .6s var(--pop),box-shadow .5s,opacity .9s var(--ios),filter .9s var(--ios);transition-delay:0s}
+.card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s var(--ios)}
+.card:hover{transform:scale(1.03)!important;box-shadow:0 22px 60px rgba(193,59,255,.35)}
+.card:hover img{transform:scale(1.06)}
+.card:active{transform:scale(.97)!important;transition-duration:.15s}
+.card .cap{position:absolute;inset:auto 0 0 0;padding:34px 18px 14px;text-align:right;font-weight:600;background:linear-gradient(transparent,rgba(8,3,16,.85))}
+.card.hide img,.card.hide .cap{visibility:hidden}
+
+/* services */
+.svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.svc div{background:var(--glass);border:1px solid var(--line);padding:28px;border-radius:24px;backdrop-filter:blur(14px)}
+.svc h3{font-size:20px;margin-bottom:6px}
+.svc p{color:var(--muted);font-size:15px}
+.about{max-width:58ch;font-size:19px;color:#e6dcf8}
+
+.contact{border-radius:32px;padding:56px 24px;text-align:center;background:linear-gradient(160deg,rgba(193,59,255,.28),rgba(60,20,110,.35));border:1px solid var(--line);backdrop-filter:blur(16px)}
+.contact img{width:76px;height:76px;border-radius:22px;margin-bottom:14px;box-shadow:0 0 50px rgba(229,139,255,.6)}
+.contact p{color:var(--muted);margin:6px 0 24px}
+footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:14px}
+
+/* lightbox (zoom from card, like iOS) */
+.lb{position:fixed;inset:0;z-index:50}
+.bd{position:absolute;inset:0;background:rgba(6,2,12,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);opacity:0;transition:opacity .5s var(--ios)}
+.li{position:fixed;transform-origin:0 0;object-fit:cover;border-radius:24px;box-shadow:0 40px 100px rgba(0,0,0,.6);transition:transform .6s var(--ios);cursor:zoom-out}
+.lc{position:fixed;inset-inline:0;display:flex;justify-content:center;align-items:center;gap:16px;opacity:0;transform:translateY(14px);transition:opacity .45s var(--ios),transform .55s var(--ios)}
+.lc button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--glass);color:var(--ink);border-radius:999px;padding:6px 20px;backdrop-filter:blur(12px);transition:transform .3s var(--pop)}
+.lc button:active{transform:scale(.92)}
+.lb.open .bd,.lb.open .lc{opacity:1;transform:none}
+
+@media(max-width:760px){
+  .hero{padding-top:120px}
+  .hero .wrap{grid-template-columns:1fr}
+  .bar{gap:14px;padding-inline-start:16px}
+  nav{gap:12px;font-size:14px}
+  .stack{max-width:440px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  html{scroll-behavior:auto}
+}
+</style>
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+
+<header>
+  <div class="bar" id="bar">
+    <nav>
+      <a href="#works">الأعمال</a>
+      <a href="#services">الخدمات</a>
+      <a href="#about">عني</a>
+      <a href="#contact">تواصل</a>
+    </nav>
+    <a href="#top" aria-label="Soedgfx"><img src="images/logo.jpg" alt="Soedgfx"></a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <h1><span class="w" style="--i:0">سعود،</span><br><span class="w" style="--i:1">أصمم</span> <span class="w" style="--i:2">الصورة</span> <span class="w" style="--i:3">التي</span> <span class="w" style="--i:4">تجعلهم</span> <span class="w" style="--i:5">يضغطون.</span></h1>
+        <p>مصمم Thumbnails. أحوّل فكرة الفيديو إلى صورة مصغّرة تلفت الانتباه من أول نظرة.</p>
+        <div class="btns">
+          <a class="btn main" href="#works">شاهد الأعمال</a>
+          <a class="btn" href="#contact">اطلب تصميم</a>
+        </div>
+      </div>
+      <div class="stack" id="stack" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <section id="works">
+    <div class="wrap">
+      <h2 class="rv">الأعمال</h2>
+      <p class="sub rv" style="--i:1">اضغط على أي عمل لعرضه بحجم كبير.</p>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="wrap">
+      <h2 class="rv">الخدمات</h2>
+      <p class="sub rv" style="--i:1">ما الذي أقدمه لك.</p>
+      <div class="svc">
+        <div class="rv" style="--i:0"><h3>تصميم Thumbnails</h3><p>صور مصغّرة ليوتيوب وبقية المنصات، بألوان وخطوط تناسب قناتك.</p></div>
+        <div class="rv" style="--i:1"><h3>هوية القناة</h3><p>بنرات وشعارات وأغلفة تجعل قناتك متناسقة وتُعرف بسهولة.</p></div>
+        <div class="rv" style="--i:2"><h3>تعديل وتطوير</h3><p>أحسّن تصميماتك الحالية لترفع نسبة النقر على فيديوهاتك.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="wrap">
+      <h2 class="rv">عني</h2>
+      <p class="about rv" style="--i:1">أنا سعود، Thumbnails Designer. أهتم بأن تكون كل صورة واضحة وقوية وتخدم الفيديو. إذا عندك فكرة أو قناة تحتاج شكلاً أفضل، راسلني.</p>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap">
+      <div class="contact rv">
+        <img src="images/logo.jpg" alt="">
+        <h2>خلّنا نشتغل مع بعض</h2>
+        <p>أرسل لي فكرة الفيديو وسأرد عليك بأقرب وقت.</p>
+        <div class="btns" style="justify-content:center;animation:none">
+          <a class="btn main" href="https://wa.me/qr/DM32MFKQVFGMK1" target="_blank" rel="noopener">واتساب</a>
+          <a class="btn" href="https://instagram.com/soedgfx" target="_blank" rel="noopener">إنستغرام @soedgfx</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>© <span id="yr"></span> Soedgfx | سعود</footer>
+
+<script>
+/* ====== عدّل أعمالك من هنا ====== */
+const WORKS = [
+  {title:"الذهب المعلون!", img:"images/work-1.jpg"},
+  {title:"نصايح للبنات!",  img:"images/work-2.jpg"},
+  {title:"فلوق الإمارات",  img:"images/work-3.jpg"}
+];
+/* ================================ */
+
+const $ = s => document.querySelector(s);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* hero frames */
+WORKS.forEach(w=>{
+  $("#stack").insertAdjacentHTML("beforeend",`<div class="frame"><div class="fi"><img src="${w.img}" alt=""></div></div>`);
+});
+
+/* grid */
+WORKS.forEach((w,i)=>{
+  const b = document.createElement("button");
+  b.className = "card rv"; b.type = "button"; b.style.setProperty("--i", i);
+  b.setAttribute("aria-label","عرض "+w.title);
+  b.innerHTML = `<img src="${w.img}" alt="${w.title}" loading="lazy"><span class="cap">${w.title}</span>`;
+  b.onclick = () => openLB(b, w);
+  $("#grid").appendChild(b);
+});
+
+/* reveal on scroll */
+const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} }), {threshold:.15, rootMargin:"0px 0px -6% 0px"});
+document.querySelectorAll(".rv").forEach(el => io.observe(el));
+
+/* header + hero parallax */
+const bar = $("#bar"), stack = $("#stack");
+let tick = false;
+addEventListener("scroll", () => {
+  if(tick) return; tick = true;
+  requestAnimationFrame(() => {
+    const y = scrollY;
+    bar.classList.toggle("s", y > 20);
+    if(!reduce && y < innerHeight) stack.style.setProperty("--y", y);
+    tick = false;
+  });
+}, {passive:true});
+
+/* lightbox: zooms from the card like iOS */
+let lb = null;
+function openLB(card, w){
+  if(lb) return;
+  const src = card.querySelector("img"), r = src.getBoundingClientRect();
+  const W = Math.min(innerWidth*.94, 980, innerHeight*.72*16/9), H = W*9/16;
+  const L = (innerWidth-W)/2, T = Math.max(20,(innerHeight-H)/2-30);
+  lb = document.createElement("div"); lb.className = "lb";
+  lb.innerHTML = `<div class="bd"></div><img class="li" src="${w.img}" alt="${w.title}"><div class="lc"><strong>${w.title}</strong><button type="button">إغلاق</button></div>`;
+  const li = lb.querySelector(".li"), lc = lb.querySelector(".lc");
+  Object.assign(li.style,{left:L+"px",top:T+"px",width:W+"px",height:H+"px"});
+  lc.style.top = (T+H+18)+"px";
+  const from = () => { const q = card.getBoundingClientRect(); return `translate(${q.left-L}px,${q.top-T}px) scale(${q.width/W},${q.height/H})`; };
+  li.style.transform = `translate(${r.left-L}px,${r.top-T}px) scale(${r.width/W},${r.height/H})`;
+  document.body.appendChild(lb); document.body.classList.add("lock");
+  card.classList.add("hide");
+  li.getBoundingClientRect();
+  requestAnimationFrame(() => { lb.classList.add("open"); li.style.transform = "none"; });
+  function close(){
+    document.removeEventListener("keydown", onKey);
+    lb.classList.remove("open");
+    li.style.transform = from();
+    setTimeout(() => { lb.remove(); lb = null; card.classList.remove("hide"); document.body.classList.remove("lock"); }, reduce ? 0 : 600);
+  }
+  const onKey = e => { if(e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  lb.querySelector(".bd").onclick = li.onclick = close;
+  lc.querySelector("button").onclick = close;
+}
+$("#yr").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
