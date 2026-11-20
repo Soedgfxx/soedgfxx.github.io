@@ -43,6 +43,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .imgf .box{aspect-ratio:16/9;border-radius:14px;border:1px dashed var(--line);overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:13px;background:rgba(0,0,0,.25)}
 .imgf img{width:100%;height:100%;object-fit:cover;display:block}
 .imgf.sq .box{aspect-ratio:1;max-width:130px}
+.vbox{aspect-ratio:9/12;max-height:340px;border-radius:14px;border:1px dashed var(--line);overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:13px;background:rgba(0,0,0,.35)}
+.vbox video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.pre{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:14px}
+.pre i{width:22px;height:22px;border-radius:50%;flex:none;border:2px solid rgba(255,255,255,.35)}
+.pre[aria-pressed=true]{border-color:var(--glow);box-shadow:0 0 0 2px rgba(229,139,255,.35)}
+.colors{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input[type=color]{width:100%;height:46px;padding:3px;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.pv{border-radius:18px;padding:20px 16px;display:grid;gap:10px;border:1px solid var(--line);text-align:center}
+.pv b{font:800 20px Cairo,Tahoma,sans-serif}
+.pv .pb{justify-self:center;border:0;color:#fff;padding:10px 22px;border-radius:999px;font:700 15px Cairo,Tahoma,sans-serif}
 .chk{display:flex;gap:8px;align-items:center}
 .chk input{width:20px;height:20px;accent-color:var(--accent)}
 .add{width:100%;border-style:dashed;padding:14px}
@@ -74,7 +85,32 @@ if(!cfg.owner){ // guess from github.io address
   if(m){ cfg.owner = m[1]; cfg.repo = location.pathname.split("/")[1] || (m[1] + ".github.io"); }
 }
 cfg.branch = cfg.branch || "main";
-let C = null, pending = {}, previews = {}, dirty = false, tab = "texts";
+let C = null, pending = {}, pendingVid = {}, vprev = {}, previews = {}, dirty = false, tab = "texts";
+
+/* ---------- theme ---------- */
+function themeVars(accent, bg){
+  const hsl = x => { const r=parseInt(x.slice(1,3),16)/255, g=parseInt(x.slice(3,5),16)/255, b=parseInt(x.slice(5,7),16)/255;
+    const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn; let h=0;
+    if(d){ h = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4; h*=60; if(h<0) h+=360; }
+    const l=(mx+mn)/2; return [h, d ? d/(1-Math.abs(2*l-1)) : 0, l]; };
+  const rgb = (h,s,l) => { h=((h%360)+360)%360; const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+    const t = h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
+    return t.map(v => Math.round((v+m)*255)); };
+  const hex = a => "#" + a.map(v => v.toString(16).padStart(2,"0")).join("");
+  const cl = v => Math.max(0, Math.min(1, v));
+  const [h,s,l] = hsl(accent), [bh,bs,bl] = hsl(bg), light = bl > .55;
+  const A = rgb(h,s,l), D = rgb(h-6,s,cl(l-.045)), H = rgb(h+9,s,cl(l+.03)), G = rgb(h+6,s,cl(l+.15)), P = rgb(h+27,s,.8);
+  const B = rgb(bh,bs,bl), B2 = rgb(bh,bs,cl(light ? bl-.06 : bl+.07));
+  return {"--bg":bg,"--bg2":hex(B2),"--bg-rgb":B.join(","),
+    "--accent":hex(A),"--accent-rgb":A.join(","),"--deep":hex(D),"--deep-rgb":D.join(","),"--hot":hex(H),
+    "--glow":hex(G),"--glow-rgb":G.join(","),"--pale":hex(P),
+    "--ink": light ? hex(rgb(bh,.4,.1)) : hex(rgb(bh,1,.97)),
+    "--muted": light ? hex(rgb(bh,.2,.35)) : hex(rgb(bh,.35,.75)),
+    "--line": light ? "rgba(0,0,0,.14)" : "rgba(255,255,255,.12)",
+    "--glass": light ? "rgba(0,0,0,.05)" : "rgba(255,255,255,.07)"};
+}
+const DEF_THEME = {accent:"#c13bff", bg:"#0b0614"};
+const PRESETS = [["بنفسجي","#c13bff","#0b0614"],["أزرق","#3b82ff","#060b18"],["سماوي","#19d3e6","#051214"],["أخضر","#22d37a","#06120c"],["أحمر","#ff3b4e","#160608"],["وردي","#ff4fa3","#160610"],["برتقالي","#ff8a1f","#150c05"],["ذهبي","#f5c542","#141006"],["أبيض","#7a3cff","#f7f4ff"]];
 
 /* ---------- helpers ---------- */
 function h(tag, a = {}, ...kids){
@@ -99,15 +135,15 @@ function field(label, obj, key, o = {}){
   return h("label",{class:"f"}, h("span",{},label), el, o.hint ? h("small",{class:"hint"},o.hint) : null);
 }
 
-function compress(file, max){
+function compress(file, max, png){
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file), img = new Image();
     img.onload = () => {
       const k = Math.min(1, max / Math.max(img.width, img.height));
       const cv = h("canvas"); cv.width = Math.round(img.width*k); cv.height = Math.round(img.height*k);
-      const x = cv.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0,0,cv.width,cv.height);
+      const x = cv.getContext("2d"); if(!png){ x.fillStyle = "#fff"; x.fillRect(0,0,cv.width,cv.height); }
       x.drawImage(img,0,0,cv.width,cv.height); URL.revokeObjectURL(url);
-      res(cv.toDataURL("image/jpeg", .86));
+      res(png ? cv.toDataURL("image/png") : cv.toDataURL("image/jpeg", .86));
     };
     img.onerror = () => rej(new Error("ما قدرت أقرأ الصورة"));
     img.src = url;
@@ -122,14 +158,39 @@ function imgField(label, obj, key, prefix, o = {}){
     const f = inp.files[0]; if(!f) return;
     try{
       status("جاري تجهيز الصورة…");
-      const d = await compress(f, o.max || 1600);
-      const p = `img-${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}.jpg`;
+      const d = await compress(f, o.max || 1600, o.png);
+      const p = `img-${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}.${o.png ? "png" : "jpg"}`;
       pending[p] = d; previews[p] = d; obj[key] = p; draw(); dirty = false; markDirty();
     }catch(e){ status(e.message,"bad"); }
     inp.value = "";
   };
   return h("div",{class:"imgf"+(o.sq?" sq":"")}, h("span",{class:"hint"},label), box, inp,
     h("button",{type:"button",onclick:()=>inp.click()}, obj[key] ? "تغيير الصورة" : "اختيار صورة"));
+}
+const MAX_VID_MB = 40;
+function vidField(v){
+  const box = h("div",{class:"vbox"});
+  const info = h("small",{class:"hint"});
+  const draw = () => {
+    box.replaceChildren(v.file ? h("video",{src: vprev[v.file] || v.file, controls:true, playsinline:true, preload:"metadata"}) : "لا يوجد فيديو مرفوع");
+    info.textContent = v.file ? "الفيديو المرفوع هو اللي يظهر في الموقع (له أولوية على الرابط)." : "ارفع فيديو من جهازك، أو اكتب رابط ريل بالأسفل.";
+  };
+  draw();
+  const inp = h("input",{type:"file",accept:"video/mp4,video/webm,video/quicktime,video/*",hidden:true});
+  inp.onchange = () => {
+    const f = inp.files[0]; inp.value = "";
+    if(!f) return;
+    if(!/^video\//.test(f.type)){ status("الملف المختار ليس فيديو","bad"); return; }
+    if(f.size > MAX_VID_MB*1024*1024){ status("حجم الفيديو " + Math.round(f.size/1048576) + " ميجا. الحد الأقصى " + MAX_VID_MB + " ميجا، اضغطه أو قصّه ثم أعد المحاولة.","bad"); return; }
+    const ext = f.type === "video/webm" ? "webm" : "mp4";
+    const p = `vid-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}.${ext}`;
+    pendingVid[p] = f; vprev[p] = URL.createObjectURL(f); v.file = p;
+    dirty = false; markDirty(); draw(); status("تم اختيار الفيديو. اضغط «نشر التغييرات» لرفعه.");
+    btn.textContent = "تغيير الفيديو"; rm.hidden = false;
+  };
+  const btn = h("button",{type:"button",onclick:()=>inp.click()}, v.file ? "تغيير الفيديو" : "رفع فيديو من الجهاز");
+  const rm = h("button",{type:"button",class:"danger",hidden:!v.file,onclick:()=>{ v.file = ""; markDirty(); draw(); btn.textContent = "رفع فيديو من الجهاز"; rm.hidden = true; }},"إزالة الفيديو المرفوع");
+  return h("div",{class:"imgf"}, h("span",{class:"hint"},"الفيديو"), box, info, inp, h("div",{class:"row"},btn,rm));
 }
 function move(arr,i,d){ const j = i+d; if(j<0||j>=arr.length) return; [arr[i],arr[j]] = [arr[j],arr[i]]; markDirty(); render(); }
 function ctrls(arr,i,what){
@@ -148,7 +209,7 @@ const TEXT_GROUPS = [
   ["عني", [["about.h2","العنوان"],["about.p","النص",{area:1,rows:4}]]],
   ["الطلب والتواصل", [["order.h2","عنوان الطلب"],["order.sub","وصف الطلب"],["contact.h2","عنوان التواصل"],["contact.p","وصف التواصل",{area:1}]]]
 ];
-const TABS = [["texts","النصوص"],["works","الأعمال"],["ba","قبل وبعد"],["videos","الفيديوهات"],["prices","الخدمات والأسعار"],["settings","الإعدادات"]];
+const TABS = [["texts","النصوص"],["works","الأعمال"],["ba","قبل وبعد"],["videos","الفيديوهات"],["prices","الخدمات والأسعار"],["theme","المظهر"],["settings","الإعدادات"]];
 function renderTabs(){
   $("#tabs").replaceChildren(...TABS.map(([k,t]) => h("button",{class:"tab",role:"tab","aria-selected":String(k===tab),onclick:()=>{ tab = k; renderTabs(); render(); scrollTo(0,0); }},t)));
 }
@@ -169,9 +230,9 @@ function render(){
     P.append(addBtn("إضافة قبل وبعد", () => C.ba.push({title:"",before:"",after:""})));
   }
   if(tab === "videos"){
-    P.append(h("p",{class:"hint",style:"margin-bottom:12px"},"الصق رابط ريل إنستغرام، مثل: instagram.com/reel/…"));
-    C.videos.forEach((v,i) => P.append(h("div",{class:"card"}, field("العنوان",v,"title"), field("رابط الريل",v,"url",{type:"url",dir:"ltr",ph:"https://www.instagram.com/reel/..."}), ctrls(C.videos,i,"هذا الفيديو"))));
-    P.append(addBtn("إضافة فيديو", () => C.videos.push({title:"",url:""})));
+    P.append(h("p",{class:"hint",style:"margin-bottom:12px"},"ارفع فيديو من جهازك (mp4 أو webm، حتى " + MAX_VID_MB + " ميجا)، أو اتركه واكتب رابط ريل إنستغرام."));
+    C.videos.forEach((v,i) => P.append(h("div",{class:"card"}, field("العنوان",v,"title"), vidField(v), field("أو رابط ريل إنستغرام (اختياري)",v,"url",{type:"url",dir:"ltr",ph:"https://www.instagram.com/reel/..."}), ctrls(C.videos,i,"هذا الفيديو"))));
+    P.append(addBtn("إضافة فيديو", () => C.videos.push({title:"",file:"",url:""})));
   }
   if(tab === "prices"){
     P.append(h("section",{class:"grp"}, h("h2",{},"الخدمات"),
@@ -192,14 +253,38 @@ function render(){
     P.querySelectorAll("textarea").forEach(t => { /* wired below */ });
     wireFeatures(P);
   }
+  if(tab === "theme" && C){
+    const cur = () => ({accent: (C.theme && C.theme.accent) || DEF_THEME.accent, bg: (C.theme && C.theme.bg) || DEF_THEME.bg});
+    const setTheme = (ac, bg, redraw) => { C.theme = {accent:ac, bg:bg}; markDirty(); if(redraw) render(); else drawPv(); };
+    const pv = h("div",{class:"pv"}, h("b",{},"معاينة الألوان"), h("span",{class:"hint pm"},"هكذا يظهر النص الثانوي"), h("button",{type:"button",class:"pb"},"زر الطلب"));
+    function drawPv(){
+      const t = cur(), v = themeVars(t.accent, t.bg);
+      pv.style.background = `radial-gradient(70% 90% at 80% 0%,rgba(${v["--accent-rgb"]},.4),transparent 70%),${v["--bg"]}`;
+      pv.style.color = v["--ink"]; pv.style.borderColor = v["--line"];
+      pv.querySelector(".pm").style.color = v["--muted"];
+      const b = pv.querySelector(".pb"); b.style.background = `linear-gradient(135deg,${v["--deep"]},${v["--hot"]})`; b.style.boxShadow = `0 6px 22px rgba(${v["--accent-rgb"]},.55)`;
+    }
+    const t0 = cur();
+    const ac = h("input",{type:"color",value:t0.accent,"aria-label":"اللون الرئيسي"}), bgc = h("input",{type:"color",value:t0.bg,"aria-label":"لون الخلفية"});
+    ac.oninput = () => setTheme(ac.value, bgc.value, false);
+    bgc.oninput = () => setTheme(ac.value, bgc.value, false);
+    const presets = h("div",{class:"presets"}, PRESETS.map(([n,c,b]) => h("button",{type:"button",class:"pre","aria-pressed":String(t0.accent.toLowerCase()===c && t0.bg.toLowerCase()===b),onclick:()=>setTheme(c,b,true)}, h("i",{style:"background:"+c}), n)));
+    P.append(h("section",{class:"grp"}, h("h2",{},"ألوان الموقع"), h("div",{class:"card"},
+      h("span",{class:"hint"},"اختر لون جاهز، أو حدد ألوانك بنفسك:"), presets,
+      h("div",{class:"colors"}, h("label",{class:"f"},h("span",{},"اللون الرئيسي (الأزرار واللمعان)"),ac), h("label",{class:"f"},h("span",{},"لون الخلفية"),bgc)),
+      h("small",{class:"hint"},"الأفضل خلفية غامقة. لو اخترت خلفية فاتحة يتحول النص تلقائياً للون الداكن."),
+      pv,
+      C.theme && C.theme.accent ? h("button",{type:"button",onclick:()=>{ delete C.theme; markDirty(); render(); }},"رجوع للألوان الأصلية") : null)));
+    drawPv();
+    P.append(h("section",{class:"grp"}, h("h2",{},"الشعار"), h("div",{class:"card"},
+      imgField("الشعار (مربع، يدعم الخلفية الشفافة)",C,"logo","logo",{sq:1,max:400,png:1}),
+      C.logo ? h("button",{type:"button",onclick:()=>{ C.logo=""; markDirty(); render(); }},"رجوع للشعار الأصلي") : h("small",{class:"hint"},"الشعار الحالي هو الأصلي داخل الموقع. الشعار الجديد يطلع أيضاً كأيقونة للموقع."))));
+  }
   if(tab === "settings"){
     if(C) P.append(h("section",{class:"grp"}, h("h2",{},"التواصل"), h("div",{class:"card"},
       field("رقم واتساب (بصيغة دولية بدون +)",C,"waNumber",{inputmode:"numeric",dir:"ltr",ph:"9665xxxxxxxx",hint:"الطلبات توصلك على هذا الرقم."}),
       field("رابط واتساب (أيقونة التواصل)",C,"waLink",{type:"url",dir:"ltr"}),
       field("رابط إنستغرام",C,"instagram",{type:"url",dir:"ltr"}))));
-    if(C) P.append(h("section",{class:"grp"}, h("h2",{},"الشعار"), h("div",{class:"card"},
-      imgField("الشعار (مربع)",C,"logo","logo",{sq:1,max:400}),
-      C.logo ? h("button",{type:"button",onclick:()=>{ C.logo=""; markDirty(); render(); }},"رجوع للشعار الأصلي") : h("small",{class:"hint"},"الشعار الحالي هو الأصلي داخل الموقع.")))); 
     const o = cfg;
     const tok = h("input",{type:"password",autocomplete:"off",dir:"ltr",placeholder:"github_pat_…"}); tok.value = o.token || "";
     const own = h("input",{type:"text",dir:"ltr",placeholder:"اسم حسابك"}); own.value = o.owner || "";
@@ -247,7 +332,7 @@ const b64utf8 = s => decodeURIComponent(escape(atob(s.replace(/\n/g,""))));
 
 function normalize(c){
   c = c || {}; c.texts = c.texts || {}; ["services","prices","works","ba","videos"].forEach(k => c[k] = c[k] || []);
-  c.waNumber = c.waNumber || ""; c.waLink = c.waLink || ""; c.instagram = c.instagram || ""; c.logo = c.logo || "";
+  c.waNumber = c.waNumber || ""; c.waLink = c.waLink || ""; c.instagram = c.instagram || ""; c.logo = c.logo || ""; if(!c.theme || !c.theme.accent) delete c.theme; c.videos.forEach(v => { v.file = v.file || ""; v.url = v.url || ""; });
   return c;
 }
 async function load(){
@@ -271,27 +356,31 @@ async function publish(){
   const bad = [];
   C.works.forEach((w,i) => { if(!w.img) bad.push("العمل رقم " + (i+1) + " بدون صورة"); });
   C.ba.forEach((b,i) => { if(!b.before || !b.after) bad.push("قبل وبعد رقم " + (i+1) + " ناقص صورة"); });
-  C.videos.forEach((v,i) => { if(!/\/(?:reel|p)\/[\w-]+/.test(v.url||"")) bad.push("رابط الفيديو رقم " + (i+1) + " غير صحيح"); });
+  C.videos.forEach((v,i) => { if(!v.file && !/\/(?:reel|p)\/[\w-]+/.test(v.url||"")) bad.push("الفيديو رقم " + (i+1) + ": ارفع فيديو أو ضع رابط ريل صحيح"); });
   if(bad.length){ status(bad[0], "bad"); return; }
   const btn = $("#pub"); btn.disabled = true;
   try{
     status("جاري النشر…");
-    const used = new Set(JSON.stringify(C).match(/img-[\w.\-]+/g) || []);
+    const used = new Set(JSON.stringify(C).match(/(?:img|vid)-[\w.\-]+/g) || []);
     const files = [];
     for(const p of Object.keys(pending)) if(used.has(p)) files.push([p, pending[p].split(",")[1], "base64"]);
+    const toB64 = f => new Promise((res,rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = () => rej(new Error("ما قدرت أقرأ ملف الفيديو")); r.readAsDataURL(f); });
+    for(const p of Object.keys(pendingVid)) if(used.has(p)){ status("جاري تجهيز الفيديو…"); files.push([p, await toB64(pendingVid[p]), "base64"]); }
     files.push(["content.json", JSON.stringify(C,null,2) + "\n", "utf-8"]);
     const br = encodeURIComponent(cfg.branch);
     const ref = await gh("/git/ref/heads/" + br);
     const base = await gh("/git/commits/" + ref.object.sha);
     const tree = [];
+    let n = 0;
     for(const [path,content,enc] of files){
+      n++; status("جاري رفع الملفات… (" + n + "/" + files.length + ")");
       const b = await gh("/git/blobs",{method:"POST",body:JSON.stringify({content,encoding:enc})});
       tree.push({path,mode:"100644",type:"blob",sha:b.sha});
     }
     const t = await gh("/git/trees",{method:"POST",body:JSON.stringify({base_tree:base.tree.sha,tree})});
     const c = await gh("/git/commits",{method:"POST",body:JSON.stringify({message:"تحديث المحتوى من لوحة التحكم",tree:t.sha,parents:[ref.object.sha]})});
     await gh("/git/refs/heads/" + br,{method:"PATCH",body:JSON.stringify({sha:c.sha})});
-    pending = {}; dirty = false;
+    pending = {}; pendingVid = {}; dirty = false;
     status("تم النشر ✓ يظهر على الموقع خلال دقيقة تقريباً","ok");
   }catch(e){ status(e.message,"bad"); }
   btn.disabled = false;
