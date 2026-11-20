@@ -117,15 +117,18 @@
   "videos": [
     {
       "title": "إعلان كوفي",
-      "url": "https://www.instagram.com/reel/DeVG6tSsWO3/"
+      "url": "https://www.instagram.com/reel/DeVG6tSsWO3/",
+      "file": ""
     },
     {
       "title": "فيديو 2",
-      "url": "https://www.instagram.com/reel/Deq9l_1uFmo/"
+      "url": "https://www.instagram.com/reel/Deq9l_1uFmo/",
+      "file": ""
     }
   ],
   "waNumber": "2010",
   "waLink": "https://wa.me/qr/",
   "instagram": "https://instagram.",
-  "logo": ""
+  "logo": "",
+  "ordersUrl": "https://script.google.com/macros/s/AKfycbxX6_9S3SOqaj2a8NOD5TYX7nwnOSAiWeEdkqiy-K1yfAVkajti_6tLdMJJwQCYZLSN/exec"
 }
