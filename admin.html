@@ -54,6 +54,16 @@ input[type=color]{width:100%;height:46px;padding:3px;background:rgba(0,0,0,.32);
 .pv{border-radius:18px;padding:20px 16px;display:grid;gap:10px;border:1px solid var(--line);text-align:center}
 .pv b{font:800 20px Cairo,Tahoma,sans-serif}
 .pv .pb{justify-self:center;border:0;color:#fff;padding:10px 22px;border-radius:999px;font:700 15px Cairo,Tahoma,sans-serif}
+.ord{gap:8px}
+.ord .hd{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+.ord .nm{font:800 17px Cairo,Tahoma,sans-serif;color:var(--ink)}
+.ord .tx{white-space:pre-wrap;word-break:break-word}
+.ord .st{font-size:12.5px;padding:2px 10px;border-radius:999px;border:1px solid var(--line)}
+.ord .st.n{color:#fff;background:linear-gradient(135deg,#a626ff,#e04bff);border-color:transparent}
+.ord .st.d{color:var(--ok)}
+select{background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-size:15px;padding:8px 10px}
+a.lb{display:inline-block;text-decoration:none;font:700 15px Cairo,Tahoma,sans-serif;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px}
+pre.code{direction:ltr;text-align:left;background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12px;line-height:1.5;max-height:220px;overflow:auto;white-space:pre}
 .chk{display:flex;gap:8px;align-items:center}
 .chk input{width:20px;height:20px;accent-color:var(--accent)}
 .add{width:100%;border-style:dashed;padding:14px}
@@ -86,6 +96,8 @@ if(!cfg.owner){ // guess from github.io address
 }
 cfg.branch = cfg.branch || "main";
 let C = null, pending = {}, pendingVid = {}, vprev = {}, previews = {}, dirty = false, tab = "texts";
+
+const GS_CODE = "// ===== سكربت استقبال الطلبات (Google Apps Script) =====\n// غيّر المفتاح التالي إلى كلمة سرية خاصة بك (أحرف إنجليزية وأرقام فقط)\nconst KEY = \"CHANGE_ME_123\";\n\n// البريد اللي يوصله الإشعار. اتركه فارغاً ليرسل لبريد حساب جوجل نفسه.\nconst NOTIFY_EMAIL = \"\";\n// اختياري: إشعار فوري على الجوال عبر تطبيق ntfy (اكتب اسماً سرياً طويلاً، مثل: soud-orders-83hf2k)\nconst NTFY_TOPIC = \"\";\n\nconst HEAD = [\"id\",\"date\",\"name\",\"phone\",\"service\",\"idea\",\"when\",\"status\"];\n\nfunction sheet_(){\n  const ss = SpreadsheetApp.getActiveSpreadsheet();\n  let sh = ss.getSheetByName(\"orders\");\n  if(!sh){ sh = ss.insertSheet(\"orders\"); sh.appendRow(HEAD); }\n  return sh;\n}\nfunction out_(o){\n  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);\n}\nfunction notify_(d){\n  const t = \"طلب جديد #\" + String(d.id || \"\").slice(0,20) + \"\\nالاسم: \" + String(d.name || \"\").slice(0,80) +\n    (d.phone ? \"\\nواتساب: \" + String(d.phone).slice(0,30) : \"\") + \"\\nالنوع: \" + String(d.service || \"\").slice(0,120) +\n    \"\\nالتفاصيل: \" + String(d.idea || \"\").slice(0,500);\n  try{ MailApp.sendEmail(NOTIFY_EMAIL || Session.getEffectiveUser().getEmail(), \"طلب جديد من الموقع\", t); }catch(_){}\n  if(NTFY_TOPIC){ try{ UrlFetchApp.fetch(\"https://ntfy.sh/\" + encodeURIComponent(NTFY_TOPIC), {method:\"post\", payload:t, muteHttpExceptions:true}); }catch(_){} }\n}\nfunction clean_(v, n){\n  v = String(v || \"\").slice(0, n);\n  return /^[=+\\-@]/.test(v) ? \"'\" + v : v;\n}\n\n// استقبال طلب جديد من الموقع + تحديث/حذف من لوحة التحكم\nfunction doPost(e){\n  let d = {};\n  try{ d = JSON.parse(e.postData.contents); }catch(_){ return out_({ok:false}); }\n  const lock = LockService.getScriptLock(); lock.waitLock(10000);\n  try{\n    const sh = sheet_();\n    if(d.action === \"add\"){\n      const id = clean_(d.id, 20) || Utilities.getUuid().slice(0, 8);\n      sh.appendRow([id, new Date(), clean_(d.name,80), clean_(d.phone,30), clean_(d.service,120), clean_(d.idea,2000), clean_(d.when,120), \"جديد\"]);\n      notify_(d);\n      return out_({ok:true, id:id});\n    }\n    if(d.key !== KEY) return out_({ok:false, error:\"key\"});\n    const rows = sh.getDataRange().getValues();\n    for(let i = 1; i < rows.length; i++){\n      if(String(rows[i][0]) === String(d.id)){\n        if(d.action === \"status\"){ sh.getRange(i + 1, 8).setValue(clean_(d.status, 20)); return out_({ok:true}); }\n        if(d.action === \"delete\"){ sh.deleteRow(i + 1); return out_({ok:true}); }\n      }\n    }\n    return out_({ok:false});\n  } finally { lock.releaseLock(); }\n}\n\n// قراءة الطلبات (للوحة التحكم فقط، تحتاج المفتاح)\nfunction doGet(e){\n  if(!e.parameter.key || e.parameter.key !== KEY) return out_({ok:false, error:\"key\"});\n  const rows = sheet_().getDataRange().getValues().slice(1).map(function(r){\n    return {id:r[0], date:(r[1] instanceof Date ? r[1].toISOString() : r[1]), name:r[2], phone:r[3], service:r[4], idea:r[5], when:r[6], status:r[7]};\n  }).reverse();\n  return out_({ok:true, orders:rows});\n}\n";
 
 /* ---------- theme ---------- */
 function themeVars(accent, bg){
@@ -209,9 +221,9 @@ const TEXT_GROUPS = [
   ["عني", [["about.h2","العنوان"],["about.p","النص",{area:1,rows:4}]]],
   ["الطلب والتواصل", [["order.h2","عنوان الطلب"],["order.sub","وصف الطلب"],["contact.h2","عنوان التواصل"],["contact.p","وصف التواصل",{area:1}]]]
 ];
-const TABS = [["texts","النصوص"],["works","الأعمال"],["ba","قبل وبعد"],["videos","الفيديوهات"],["prices","الخدمات والأسعار"],["theme","المظهر"],["settings","الإعدادات"]];
+const TABS = [["texts","النصوص"],["works","الأعمال"],["ba","قبل وبعد"],["videos","الفيديوهات"],["prices","الخدمات والأسعار"],["orders","الطلبات"],["theme","المظهر"],["settings","الإعدادات"]];
 function renderTabs(){
-  $("#tabs").replaceChildren(...TABS.map(([k,t]) => h("button",{class:"tab",role:"tab","aria-selected":String(k===tab),onclick:()=>{ tab = k; renderTabs(); render(); scrollTo(0,0); }},t)));
+  $("#tabs").replaceChildren(...TABS.map(([k,t]) => h("button",{class:"tab",role:"tab","aria-selected":String(k===tab),onclick:()=>{ tab = k; renderTabs(); render(); scrollTo(0,0); if(k === "orders") loadOrders(); }}, k === "orders" && newCount ? t + " (" + newCount + ")" : t)));
 }
 
 function render(){
@@ -252,6 +264,41 @@ function render(){
     // features textarea -> array
     P.querySelectorAll("textarea").forEach(t => { /* wired below */ });
     wireFeatures(P);
+  }
+  if(tab === "orders" && C){
+    const keyIn = h("input",{type:"password",dir:"ltr",autocomplete:"off",placeholder:"المفتاح السري"}); keyIn.value = okey();
+    const ready = !!(C.ordersUrl && okey());
+    const copy = h("button",{type:"button",onclick:async()=>{ try{ await navigator.clipboard.writeText(GS_CODE); copy.textContent = "تم النسخ ✓"; }catch(e){ copy.textContent = "حدد الكود وانسخه يدوياً"; } }},"نسخ الكود");
+    const test = h("button",{type:"button",class:"main",onclick:async()=>{
+      try{ localStorage.setItem("soed_orders_key", keyIn.value.trim()); }catch(e){}
+      status("جاري الاتصال…"); orders = null; ordersErr = "";
+      await loadOrders(true);
+      if(orders){ status("تم الاتصال بنجاح ✓ لا تنس «نشر التغييرات» ليبدأ الموقع بحفظ الطلبات.", "ok"); render(); } else { status(ordersErr || "أدخل الرابط والمفتاح", "bad"); render(); }
+    }},"حفظ وفحص الاتصال");
+    const setup = h("details",{open:!ready}, h("summary",{style:"cursor:pointer;font-weight:700"},"إعداد استقبال الطلبات (مرة وحدة)"),
+      h("div",{class:"card",style:"margin-top:10px"},
+        h("ol",{class:"steps"},
+          h("li",{},"افتح ",h("b",{},"sheets.new")," لإنشاء جدول Google جديد."),
+          h("li",{},"من القائمة: ",h("b",{},"Extensions ← Apps Script"),"، احذف المحتوى والصق الكود التالي."),
+          h("li",{},"غيّر ",h("b",{},"CHANGE_ME_123")," في أول الكود إلى مفتاح سري خاص بك."),
+          h("li",{},"اضغط ",h("b",{},"Deploy ← New deployment ← Web app"),"، اجعل Execute as = ",h("b",{},"Me")," وWho has access = ",h("b",{},"Anyone"),"، ثم Deploy ووافق على الصلاحيات."),
+          h("li",{},"انسخ رابط الـ Web app (ينتهي بـ /exec) والصقه بالأسفل مع نفس المفتاح، ثم «نشر التغييرات»."),
+          h("li",{},h("b",{},"الإشعارات:")," كل طلب جديد يوصلك إيميل على بريد حسابك. وللإشعار الفوري على الجوال: ثبّت تطبيق ntfy، واشترك باسم سري، وضع نفس الاسم في NTFY_TOPIC بالكود."),
+          h("li",{},"لو أعددتها قبل كذا: الصق الكود الجديد، ثم Deploy ← Manage deployments ← ✏️ ← Version: New version ← Deploy.")),
+        h("pre",{class:"code"}, GS_CODE), h("div",{class:"row"}, copy)));
+    const conn = h("div",{class:"card"},
+      field("رابط الـ Web app",C,"ordersUrl",{type:"url",dir:"ltr",ph:"https://script.google.com/macros/s/.../exec",hint:"هذا الرابط يُحفظ في الموقع ليرسل الطلبات إليه."}),
+      h("label",{class:"f"},h("span",{},"المفتاح السري (يُحفظ على هذا الجهاز فقط)"),keyIn),
+      h("div",{class:"row"},test));
+    P.append(h("section",{class:"grp"}, h("h2",{},"الطلبات"),
+      h("p",{class:"hint",style:"margin-bottom:12px"},"أي طلب من الموقع يوصلك على واتساب ويُحفظ هنا أيضاً."),
+      !ready ? null : h("div",{class:"row",style:"margin-bottom:12px"}, h("button",{type:"button",onclick:()=>{ orders = null; render(); loadOrders(); }},"تحديث")),
+      !ready ? h("p",{class:"hint"},"أكمل الإعداد بالأسفل لتظهر الطلبات هنا.")
+        : ordersErr ? h("p",{class:"hint",style:"color:var(--bad)"},ordersErr)
+        : orders === null ? h("p",{class:"hint"},"جاري التحميل…")
+        : !orders.length ? h("p",{class:"hint"},"لا توجد طلبات بعد.")
+        : orders.map(orderCard)));
+    P.append(h("section",{class:"grp"}, setup, h("div",{style:"height:12px"}), conn));
   }
   if(tab === "theme" && C){
     const cur = () => ({accent: (C.theme && C.theme.accent) || DEF_THEME.accent, bg: (C.theme && C.theme.bg) || DEF_THEME.bg});
@@ -315,6 +362,48 @@ function wireFeatures(P){
   tas.forEach((t,i) => { t.oninput = () => { C.prices[i].features = t.value.split("\n").map(s => s.trim()).filter(Boolean); markDirty(); }; });
 }
 
+/* ---------- orders ---------- */
+let orders = null, ordersErr = "", newCount = 0;
+const okey = () => { try{ return localStorage.getItem("soed_orders_key") || ""; }catch(e){ return ""; } };
+async function loadOrders(silent){
+  if(!C || !C.ordersUrl || !okey()) return;
+  try{
+    const r = await fetch(C.ordersUrl + (C.ordersUrl.includes("?") ? "&" : "?") + "key=" + encodeURIComponent(okey()) + "&t=" + Date.now());
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error === "key" ? "المفتاح غير صحيح" : "تعذّر جلب الطلبات");
+    orders = d.orders || []; ordersErr = "";
+  }catch(e){
+    orders = null;
+    ordersErr = e instanceof TypeError || e instanceof SyntaxError ? "تعذّر الاتصال. تأكد أن الرابط هو رابط النشر (ينتهي بـ /exec) وأن الوصول «أي شخص»." : e.message;
+  }
+  newCount = orders ? orders.filter(o => o.status === "جديد").length : 0;
+  renderTabs(); if(tab === "orders" && !silent) render();
+}
+async function orderPost(body){
+  const r = await fetch(C.ordersUrl, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({...body, key:okey()})});
+  const d = await r.json(); if(!d.ok) throw new Error("فشل التحديث، تأكد من المفتاح.");
+}
+function orderCard(o){
+  const phone = String(o.phone || "").replace(/\D/g, "");
+  const sel = h("select",{}, ["جديد","قيد التنفيذ","تم"].map(s => h("option",{value:s,selected:s === o.status}, s)));
+  sel.onchange = async () => {
+    const old = o.status;
+    try{ await orderPost({action:"status", id:o.id, status:sel.value}); o.status = sel.value; newCount = orders.filter(x => x.status === "جديد").length; renderTabs(); render(); }
+    catch(e){ sel.value = old; status(e.message, "bad"); }
+  };
+  const when = o.date ? new Date(o.date).toLocaleString("ar", {dateStyle:"medium", timeStyle:"short"}) : "";
+  return h("div",{class:"card ord"},
+    h("div",{class:"hd"}, h("span",{class:"st " + (o.status === "جديد" ? "n" : o.status === "تم" ? "d" : "")}, o.status || "جديد"), h("span",{}, "#" + o.id + (when ? " • " + when : ""))),
+    h("div",{class:"nm"}, o.name || "بدون اسم"),
+    h("div",{}, h("span",{class:"hint"},"النوع: "), o.service || "—"),
+    h("div",{class:"tx"}, o.idea || ""),
+    o.when ? h("div",{}, h("span",{class:"hint"},"الموعد: "), o.when) : null,
+    phone ? h("div",{dir:"ltr",class:"hint"}, "+" + phone) : null,
+    h("div",{class:"row"}, sel,
+      phone ? h("a",{class:"lb",href:"https://wa.me/" + phone,target:"_blank",rel:"noopener"},"رد على واتساب") : null,
+      h("button",{type:"button",class:"danger",onclick:async()=>{ if(!confirm("حذف هذا الطلب؟")) return; try{ await orderPost({action:"delete", id:o.id}); orders = orders.filter(x => x !== o); newCount = orders.filter(x => x.status === "جديد").length; renderTabs(); render(); }catch(e){ status(e.message, "bad"); } }},"حذف")));
+}
+
 /* ---------- GitHub ---------- */
 async function gh(path, opt = {}){
   if(!cfg.token || !cfg.owner || !cfg.repo) throw new Error("اربط حسابك من تبويب الإعدادات أولاً.");
@@ -332,7 +421,7 @@ const b64utf8 = s => decodeURIComponent(escape(atob(s.replace(/\n/g,""))));
 
 function normalize(c){
   c = c || {}; c.texts = c.texts || {}; ["services","prices","works","ba","videos"].forEach(k => c[k] = c[k] || []);
-  c.waNumber = c.waNumber || ""; c.waLink = c.waLink || ""; c.instagram = c.instagram || ""; c.logo = c.logo || ""; if(!c.theme || !c.theme.accent) delete c.theme; c.videos.forEach(v => { v.file = v.file || ""; v.url = v.url || ""; });
+  c.waNumber = c.waNumber || ""; c.waLink = c.waLink || ""; c.instagram = c.instagram || ""; c.logo = c.logo || ""; c.ordersUrl = c.ordersUrl || ""; if(!c.theme || !c.theme.accent) delete c.theme; c.videos.forEach(v => { v.file = v.file || ""; v.url = v.url || ""; });
   return c;
 }
 async function load(){
@@ -348,6 +437,7 @@ async function load(){
   }catch(e){ C = null; status("تعذّر تحميل المحتوى","bad"); }
   if(!cfg.token) tab = "settings";
   renderTabs(); render();
+  loadOrders(true);
 }
 
 async function publish(){

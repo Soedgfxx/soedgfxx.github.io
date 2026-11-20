@@ -419,6 +419,7 @@ try{ applyTheme(JSON.parse(localStorage.getItem("soed_theme") || "null")); }catc
       <p class="sub rv" style="--i:1" data-c="order.sub">عبّي الطلب وبيوصلني على واتساب مباشرة.</p>
       <form class="oform rv" id="oform" novalidate>
         <label class="f"><span>الاسم</span><input name="cname" required autocomplete="name" placeholder="اسمك"></label>
+        <label class="f"><span>رقم واتساب للرد عليك (اختياري)</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="مثال: 9665xxxxxxxx"></label>
         <div class="f"><span>نوع الطلب</span>
           <div class="chips" id="chips"></div>
         </div>
@@ -583,7 +584,7 @@ document.querySelectorAll("[data-pick]").forEach(a => a.addEventListener("click"
 }));
 
 /* order form -> WhatsApp */
-const WA_QR = C.waLink || "";
+const WA_QR = C.waLink || "", ORDERS_URL = C.ordersUrl || "";
 $("#oform").addEventListener("submit", e => {
   e.preventDefault();
   const f = e.target, note = $("#onote");
@@ -593,8 +594,13 @@ $("#oform").addEventListener("submit", e => {
     (n ? f.elements.idea : f.elements.cname).focus();
     return;
   }
-  const when = f.elements.when.value.trim();
-  const msg = "طلب جديد من الموقع\n\nالاسم: " + n + "\nنوع الطلب: " + f.elements.svc.value + "\nالتفاصيل: " + idea + (when ? "\nالموعد: " + when : "");
+  const when = f.elements.when.value.trim(), phone = f.elements.phone.value.trim(), svc = f.elements.svc.value;
+  const id = "S" + Date.now().toString(36).slice(-5).toUpperCase();
+  const msg = "طلب جديد من الموقع" + (ORDERS_URL ? " (رقم " + id + ")" : "") + "\n\nالاسم: " + n + (phone ? "\nواتساب: " + phone : "") + "\nنوع الطلب: " + svc + "\nالتفاصيل: " + idea + (when ? "\nالموعد: " + when : "");
+  /* حفظ الطلب في لوحة التحكم (Google Sheet) بالتوازي مع واتساب */
+  if(ORDERS_URL){
+    try{ fetch(ORDERS_URL, {method:"POST", mode:"no-cors", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({action:"add", id, name:n, phone, service:svc, idea, when})}).catch(()=>{}); }catch(_){}
+  }
   if(WA_NUMBER){
     window.open("https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
     note.textContent = "جاري فتح واتساب... اضغط إرسال هناك.";
@@ -603,6 +609,7 @@ $("#oform").addEventListener("submit", e => {
     try{ navigator.clipboard.writeText(msg).catch(()=>{}); }catch(_){}
     note.textContent = "نسخنا طلبك. الصقه في محادثة واتساب وأرسله.";
   }
+  f.reset();
 });
 
 /* hero frames */
