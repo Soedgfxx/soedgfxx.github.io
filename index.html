@@ -416,16 +416,16 @@ try{ applyTheme(JSON.parse(localStorage.getItem("soed_theme") || "null")); }catc
   <section id="order">
     <div class="wrap">
       <h2 data-split data-c="order.h2">اطلب تصميمك</h2>
-      <p class="sub rv" style="--i:1" data-c="order.sub">عبّي الطلب وبيوصلني على واتساب مباشرة.</p>
+      <p class="sub rv" style="--i:1" data-c="order.sub">عبّي الطلب وأتواصل معك على واتساب.</p>
       <form class="oform rv" id="oform" novalidate>
         <label class="f"><span>الاسم</span><input name="cname" required autocomplete="name" placeholder="اسمك"></label>
-        <label class="f"><span>رقم واتساب للرد عليك (اختياري)</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="مثال: 9665xxxxxxxx"></label>
+        <label class="f"><span>رقم واتساب للتواصل معك</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" required placeholder="بصيغة دولية بدون صفر أو +، مثال: 9665xxxxxxxx"></label>
         <div class="f"><span>نوع الطلب</span>
           <div class="chips" id="chips"></div>
         </div>
         <label class="f"><span>فكرة الفيديو أو التفاصيل</span><textarea name="idea" rows="4" required placeholder="اكتب فكرة الفيديو وأي ملاحظات"></textarea></label>
         <label class="f"><span>الموعد المطلوب (اختياري)</span><input name="when" placeholder="مثال: خلال 3 أيام"></label>
-        <button class="btn main send" type="submit">أرسل الطلب عبر واتساب</button>
+        <button class="btn main send" type="submit">أرسل الطلب</button>
         <p class="note" id="onote" role="status"></p>
       </form>
     </div>
@@ -454,7 +454,7 @@ try{ applyTheme(JSON.parse(localStorage.getItem("soed_theme") || "null")); }catc
 
 <script>
 /* المحتوى يجي من content.json — عدّله من لوحة التحكم admin.html */
-const FALLBACK = {"texts": {"nav.works": "الأعمال", "nav.compare": "قبل وبعد", "nav.videos": "الفيديوهات", "nav.services": "الخدمات", "nav.pricing": "الأسعار", "nav.contact": "تواصل", "hero.h1": "سعود،\nأصمم الصورة التي تجعلهم يضغطون.", "hero.p": "مصمم Thumbnails. أحوّل فكرة الفيديو إلى صورة مصغّرة تلفت الانتباه من أول نظرة.", "hero.btn1": "شاهد الأعمال", "hero.btn2": "اطلب تصميم", "works.h2": "الأعمال", "works.sub": "اضغط على أي عمل لعرضه بحجم كبير.", "compare.h2": "قبل وبعد", "compare.sub": "اسحب الفاصل لترى الصورة قبل التصميم وبعده.", "videos.h2": "الفيديوهات", "videos.sub": "اضغط على الفيديو لتشغيله.", "services.h2": "الخدمات", "services.sub": "ما الذي أقدمه لك.", "pricing.h2": "الأسعار والباقات", "pricing.sub": "تسليم خلال 24 ساعة، وتعديلان مجانيان على كل تصميم.", "pricing.note": "كل تعديل إضافي بعد التعديلين المجانيين: 1$ فقط.", "about.h2": "عني", "about.p": "أنا سعود، Thumbnails Designer. أهتم بأن تكون كل صورة واضحة وقوية وتخدم الفيديو. إذا عندك فكرة أو قناة تحتاج شكلاً أفضل، راسلني.", "order.h2": "اطلب تصميمك", "order.sub": "عبّي الطلب وبيوصلني على واتساب مباشرة.", "contact.h2": "خلّنا نشتغل مع بعض", "contact.p": "أرسل لي فكرة الفيديو وسأرد عليك بأقرب وقت."}, "services": [{"title": "تصميم Thumbnails", "text": "صور مصغّرة ليوتيوب وبقية المنصات، بألوان وخطوط تناسب قناتك."}, {"title": "هوية القناة", "text": "بنرات وشعارات وأغلفة تجعل قناتك متناسقة وتُعرف بسهولة."}, {"title": "تعديل وتطوير", "text": "أحسّن تصميماتك الحالية لترفع نسبة النقر على فيديوهاتك."}], "prices": [{"title": "Thumbnail واحد", "price": 8, "unit": "للصورة المصغّرة الواحدة", "features": ["تصميم احترافي لفيديو واحد", "تسليم خلال 24 ساعة", "تعديلان مجانيان"], "hot": false, "badge": ""}, {"title": "5 Thumbnails", "price": 25, "unit": "5$ للصورة بدل 8$، توفّر 15$", "features": ["5 صور مصغّرة لفيديوهاتك", "تسليم خلال 24 ساعة", "تعديلان مجانيان"], "hot": true, "badge": "الأكثر توفيراً"}, {"title": "بنر", "price": 20, "unit": "للبنر الواحد", "features": ["بنر احترافي لقناتك", "تسليم خلال 24 ساعة", "تعديلان مجانيان"], "hot": false, "badge": ""}], "works": [{"title": "الذهب المعلون!", "img": "img-work-1.jpg"}, {"title": "نصايح للبنات!", "img": "img-work-2.jpg"}, {"title": "فلوق الإمارات", "img": "img-work-3.jpg"}, {"title": "الطوارئ", "img": "img-work-4.jpg"}, {"title": "يوم 1 ويوم ؟", "img": "img-work-5.jpg"}], "ba": [{"title": "الكرفان", "before": "img-ba-1-before.jpg", "after": "img-ba-1-after.jpg"}, {"title": "انا بشري", "before": "img-ba-2-before.jpg", "after": "img-ba-2-after.jpg"}], "videos": [{"title": "إعلان كوفي", "url": "https://www.instagram.com/reel/DeVG6tSsWO3/"}, {"title": "فيديو 2", "url": "https://www.instagram.com/reel/Deq9l_1uFmo/"}], "waNumber": "201063302934", "waLink": "https://wa.me/qr/DM32MFKQVFGMK1", "instagram": "https://instagram.com/soedgfx", "logo": ""};
+const FALLBACK = {"texts": {"nav.works": "الأعمال", "nav.compare": "قبل وبعد", "nav.videos": "الفيديوهات", "nav.services": "الخدمات", "nav.pricing": "الأسعار", "nav.contact": "تواصل", "hero.h1": "سعود،\nأصمم الصورة التي تجعلهم يضغطون.", "hero.p": "مصمم Thumbnails. أحوّل فكرة الفيديو إلى صورة مصغّرة تلفت الانتباه من أول نظرة.", "hero.btn1": "شاهد الأعمال", "hero.btn2": "اطلب تصميم", "works.h2": "الأعمال", "works.sub": "اضغط على أي عمل لعرضه بحجم كبير.", "compare.h2": "قبل وبعد", "compare.sub": "اسحب الفاصل لترى الصورة قبل التصميم وبعده.", "videos.h2": "الفيديوهات", "videos.sub": "اضغط على الفيديو لتشغيله.", "services.h2": "الخدمات", "services.sub": "ما الذي أقدمه لك.", "pricing.h2": "الأسعار والباقات", "pricing.sub": "تسليم خلال 24 ساعة، وتعديلان مجانيان على كل تصميم.", "pricing.note": "كل تعديل إضافي بعد التعديلين المجانيين: 1$ فقط.", "about.h2": "عني", "about.p": "أنا سعود، Thumbnails Designer. أهتم بأن تكون كل صورة واضحة وقوية وتخدم الفيديو. إذا عندك فكرة أو قناة تحتاج شكلاً أفضل، راسلني.", "order.h2": "اطلب تصميمك", "order.sub": "عبّي الطلب وأتواصل معك على واتساب.", "contact.h2": "خلّنا نشتغل مع بعض", "contact.p": "أرسل لي فكرة الفيديو وسأرد عليك بأقرب وقت."}, "services": [{"title": "تصميم Thumbnails", "text": "صور مصغّرة ليوتيوب وبقية المنصات، بألوان وخطوط تناسب قناتك."}, {"title": "هوية القناة", "text": "بنرات وشعارات وأغلفة تجعل قناتك متناسقة وتُعرف بسهولة."}, {"title": "تعديل وتطوير", "text": "أحسّن تصميماتك الحالية لترفع نسبة النقر على فيديوهاتك."}], "prices": [{"title": "Thumbnail واحد", "price": 8, "unit": "للصورة المصغّرة الواحدة", "features": ["تصميم احترافي لفيديو واحد", "تسليم خلال 24 ساعة", "تعديلان مجانيان"], "hot": false, "badge": ""}, {"title": "5 Thumbnails", "price": 25, "unit": "5$ للصورة بدل 8$، توفّر 15$", "features": ["5 صور مصغّرة لفيديوهاتك", "تسليم خلال 24 ساعة", "تعديلان مجانيان"], "hot": true, "badge": "الأكثر توفيراً"}, {"title": "بنر", "price": 20, "unit": "للبنر الواحد", "features": ["بنر احترافي لقناتك", "تسليم خلال 24 ساعة", "تعديلان مجانيان"], "hot": false, "badge": ""}], "works": [{"title": "الذهب المعلون!", "img": "img-work-1.jpg"}, {"title": "نصايح للبنات!", "img": "img-work-2.jpg"}, {"title": "فلوق الإمارات", "img": "img-work-3.jpg"}, {"title": "الطوارئ", "img": "img-work-4.jpg"}, {"title": "يوم 1 ويوم ؟", "img": "img-work-5.jpg"}], "ba": [{"title": "الكرفان", "before": "img-ba-1-before.jpg", "after": "img-ba-1-after.jpg"}, {"title": "انا بشري", "before": "img-ba-2-before.jpg", "after": "img-ba-2-after.jpg"}], "videos": [{"title": "إعلان كوفي", "url": "https://www.instagram.com/reel/DeVG6tSsWO3/"}, {"title": "فيديو 2", "url": "https://www.instagram.com/reel/Deq9l_1uFmo/"}], "waNumber": "201063302934", "waLink": "https://wa.me/qr/DM32MFKQVFGMK1", "instagram": "https://instagram.com/soedgfx", "logo": ""};
 async function loadContent(){
   try{
     const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 4000);
@@ -585,31 +585,44 @@ document.querySelectorAll("[data-pick]").forEach(a => a.addEventListener("click"
 
 /* order form -> WhatsApp */
 const WA_QR = C.waLink || "", ORDERS_URL = C.ordersUrl || "";
-$("#oform").addEventListener("submit", e => {
+$("#oform").addEventListener("submit", async e => {
   e.preventDefault();
-  const f = e.target, note = $("#onote");
+  const f = e.target, note = $("#onote"), btn = f.querySelector(".send");
   const n = f.elements.cname.value.trim(), idea = f.elements.idea.value.trim();
+  const when = f.elements.when.value.trim(), phone = f.elements.phone.value.trim(), digits = phone.replace(/\D/g, ""), svc = f.elements.svc.value;
   if(!n || !idea){
     note.textContent = "اكتب اسمك وتفاصيل الطلب أولاً.";
     (n ? f.elements.idea : f.elements.cname).focus();
     return;
   }
-  const when = f.elements.when.value.trim(), phone = f.elements.phone.value.trim(), svc = f.elements.svc.value;
+  if(digits.length < 8 || digits.charAt(0) === "0"){
+    note.textContent = "اكتب رقم واتساب بصيغة دولية بدون صفر في البداية، مثال: 9665xxxxxxxx";
+    f.elements.phone.focus();
+    return;
+  }
   const id = "S" + Date.now().toString(36).slice(-5).toUpperCase();
-  const msg = "طلب جديد من الموقع" + (ORDERS_URL ? " (رقم " + id + ")" : "") + "\n\nالاسم: " + n + (phone ? "\nواتساب: " + phone : "") + "\nنوع الطلب: " + svc + "\nالتفاصيل: " + idea + (when ? "\nالموعد: " + when : "");
-  /* حفظ الطلب في لوحة التحكم (Google Sheet) بالتوازي مع واتساب */
-  if(ORDERS_URL){
-    try{ fetch(ORDERS_URL, {method:"POST", mode:"no-cors", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({action:"add", id, name:n, phone, service:svc, idea, when})}).catch(()=>{}); }catch(_){}
+  const msg = "طلب جديد من الموقع (رقم " + id + ")\n\nالاسم: " + n + "\nواتساب: " + phone + "\nنوع الطلب: " + svc + "\nالتفاصيل: " + idea + (when ? "\nالموعد: " + when : "");
+  const waUrl = WA_NUMBER ? "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg) : WA_QR;
+  if(!ORDERS_URL){ /* بدون ربط الطلبات: الطريقة القديمة عبر واتساب */
+    window.open(waUrl, "_blank");
+    if(!WA_NUMBER){ try{ navigator.clipboard.writeText(msg).catch(()=>{}); }catch(_){} }
+    note.textContent = WA_NUMBER ? "جاري فتح واتساب... اضغط إرسال هناك." : "نسخنا طلبك. الصقه في محادثة واتساب وأرسله.";
+    return;
   }
-  if(WA_NUMBER){
-    window.open("https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
-    note.textContent = "جاري فتح واتساب... اضغط إرسال هناك.";
-  } else {
-    window.open(WA_QR, "_blank");
-    try{ navigator.clipboard.writeText(msg).catch(()=>{}); }catch(_){}
-    note.textContent = "نسخنا طلبك. الصقه في محادثة واتساب وأرسله.";
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الإرسال…"; note.textContent = "";
+  try{
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 20000);
+    await fetch(ORDERS_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({action:"add", id, name:n, phone, service:svc, idea, when}), signal:ctl.signal});
+    clearTimeout(t);
+    note.textContent = "تم استلام طلبك ✓ رقم الطلب " + id + ". بنتواصل معك على واتساب قريباً.";
+    f.reset();
+  }catch(_){
+    note.textContent = "تعذّر إرسال الطلب. جرّب مرة ثانية، أو ";
+    const a = document.createElement("a"); a.href = waUrl; a.target = "_blank"; a.rel = "noopener"; a.textContent = "أرسله عبر واتساب";
+    note.append(a);
   }
-  f.reset();
+  btn.disabled = false; btn.textContent = label;
 });
 
 /* hero frames */
