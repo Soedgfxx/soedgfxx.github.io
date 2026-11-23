@@ -130,5 +130,33 @@
   "waLink": "https://wa.me/qr/LBVJ5JGBZWAJL1",
   "instagram": "https://www.instagram.com/soedgfx?jplx=MWx2eGxkbmJhZm9qbw%3D%3D&utm_source=qr",
   "logo": "",
-  "ordersUrl": "https://script.google.com/macros/s/AKfycbydee72KJ-_qEhfq2v3IqLCbQEkoectjrxQU2ffWnAasdg-VHsnU5HeP56IGYIM13oB/exec"
+  "ordersUrl": "https://script.google.com/macros/s/AKfycbydee72KJ-_qEhfq2v3IqLCbQEkoectjrxQU2ffWnAasdg-VHsnU5HeP56IGYIM13oB/exec",
+  "shop": [
+    {
+      "img": "images/shop-mwtv3chbv05.jpg",
+      "title": "تيكست ستايل ",
+      "price": 2,
+      "priceEgp": 120,
+      "unit": "",
+      "features": [
+        "3 تيكست ستايل مطلوبين"
+      ],
+      "payUrl": "",
+      "btn": "",
+      "hot": true,
+      "badge": ""
+    }
+  ],
+  "methods": [
+    {
+      "name": "انستاباي",
+      "value": " https://ipn.eg/S/moab67/instapay/0XKK67   اضغط الرابط لارسال نقود الى  moab67@instapay  Powered by InstaPay",
+      "logo": "images/pay-mwtv4w2sl3f.jpg"
+    },
+    {
+      "name": "فودافون كاش",
+      "value": "01004291425 ",
+      "logo": "images/pay-mwtv7dzbs4d.jpg"
+    }
+  ]
 }
