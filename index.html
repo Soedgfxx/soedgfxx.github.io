@@ -222,6 +222,18 @@ html.introing header,html.introing .hero *{animation-play-state:paused}
 .pm .mth code{font:600 17px/1.4 Cairo,Tahoma,sans-serif;direction:ltr;text-align:right;word-break:break-all;user-select:all}
 .pm .mth button,.pm .x{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--glass);color:var(--ink);border-radius:999px;padding:6px 16px;justify-self:start}
 .pm .x{justify-self:center;color:var(--muted)}
+.pm .hint2{color:var(--muted);font-size:14.5px}
+.pm .mopts{display:grid;gap:10px}
+.pm .mopt{display:flex;align-items:center;gap:14px;width:100%;padding:12px 16px;border-radius:18px;border:1px solid var(--line);background:var(--glass);color:var(--ink);font:700 17px Cairo,Tahoma,sans-serif;cursor:pointer;text-align:right;transition:transform .3s var(--pop),border-color .3s}
+.pm .mopt:hover{border-color:var(--glow);transform:scale(1.02)}
+.pm .mopt img,.pm .nologo{width:44px;height:44px;border-radius:12px;object-fit:contain;background:#fff;padding:4px;flex:none}
+.pm .nologo{background:linear-gradient(135deg,#a626ff,#e04bff)}
+.pm .mth small .nologo{display:none}
+.pm .x.back{justify-self:stretch;text-align:center}
+.pc .pimg{margin:-14px -8px 10px;aspect-ratio:16/9;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:#1a0f2e}
+.pc .pimg img{width:100%;height:100%;object-fit:cover;display:block}
+.pc .pays{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.pc .pays img{height:28px;max-width:70px;object-fit:contain;border-radius:7px;background:#fff;padding:2px}
 .pm ol{padding-inline-start:20px;color:var(--muted);font-size:14.5px;display:grid;gap:4px}
 .pc .secure{margin-top:10px;text-align:center;font-size:12.5px;color:var(--muted)}
 .pnote{margin-top:22px;text-align:center;color:var(--muted);font-size:15px}
@@ -500,19 +512,27 @@ const MANUAL = METHODS.length > 0;
 const SHOP = (C.shop || []).filter(x => x.title && (MANUAL || /^https:\/\//i.test(x.payUrl || "")));
 function payModal(x){
   const m = document.createElement("div"); m.className = "pm"; m.setAttribute("role","dialog"); m.setAttribute("aria-modal","true");
-  const logo = u => /^images\/[\w.\-]+$/.test(u || "") ? `<img src="${esc(u)}" alt="">` : "";
-  const row = (l,v,lg) => v ? `<div class="mth"><small>${logo(lg)}${l}</small><code>${esc(v)}</code><button type="button" data-copy="${esc(v)}">نسخ</button></div>` : "";
-  m.innerHTML = `<div class="bx"><h3>${esc(x.title)}</h3><div class="amt">${esc(x.price)} $${+x.priceEgp ? `<small>≈ ${esc(x.priceEgp)} ج.م</small>` : ""}</div>${METHODS.map(m => row(m.name,m.value,m.logo)).join("")}<ol><li>حوّل المبلغ بإحدى الطرق أعلاه.</li><li>اضغط "أرسلت المبلغ" وأرفق صورة التحويل في واتساب.</li><li>يصلك الملف فور التأكد من التحويل.</li></ol><a class="btn main" id="pmWa" target="_blank" rel="noopener" style="text-align:center">أرسلت المبلغ — تأكيد عبر واتساب</a><button class="x" type="button">إغلاق</button></div>`;
-  const msg = "تم الدفع للباكيدج: " + x.title + " (" + x.price + "$)\nمرفق صورة التحويل.";
-  m.querySelector("#pmWa").href = WA_NUMBER ? "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg) : (C.waLink || "#");
+  const logo = u => /^images\/[\w.\-]+$/.test(u || "") ? `<img src="${esc(u)}" alt="">` : `<span class="nologo"></span>`;
+  const amount = `<div class="amt">${esc(x.price)} $${+x.priceEgp ? `<small>≈ ${esc(x.priceEgp)} ج.م</small>` : ""}</div>`;
   const close = () => { m.remove(); document.body.classList.remove("lock"); document.removeEventListener("keydown", k); };
   const k = e => { if(e.key === "Escape") close(); };
+  const pick = () => {
+    m.innerHTML = `<div class="bx"><h3>${esc(x.title)}</h3>${amount}<p class="hint2">اختر طريقة الدفع:</p><div class="mopts">${METHODS.map((q,i) => `<button type="button" class="mopt" data-i="${i}">${logo(q.logo)}<span>${esc(q.name)}</span></button>`).join("")}</div><button class="x" type="button">إغلاق</button></div>`;
+    m.querySelectorAll(".mopt").forEach(b => b.onclick = () => detail(METHODS[+b.dataset.i]));
+    m.querySelector(".x").onclick = close;
+  };
+  const detail = q => {
+    const msg = "تم الدفع للباكيدج: " + x.title + " (" + x.price + "$" + (+x.priceEgp ? " ≈ " + x.priceEgp + " ج.م" : "") + ")\nطريقة الدفع: " + q.name + "\nمرفق صورة التحويل.";
+    const wa = WA_NUMBER ? "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg) : (C.waLink || "#");
+    m.innerHTML = `<div class="bx"><h3>${esc(x.title)}</h3>${amount}<div class="mth"><small>${logo(q.logo)}${esc(q.name)}</small><code>${esc(q.value)}</code><button type="button" data-copy="${esc(q.value)}">نسخ</button></div><ol><li>حوّل المبلغ إلى الحساب أعلاه.</li><li>اضغط "أرسلت المبلغ" وأرفق صورة التحويل في واتساب.</li><li>يصلك الملف فور التأكد من التحويل.</li></ol><a class="btn main" href="${esc(wa)}" target="_blank" rel="noopener" style="text-align:center">أرسلت المبلغ — تأكيد عبر واتساب</a>${METHODS.length > 1 ? `<button class="x back" type="button">رجوع لطرق الدفع</button>` : ""}<button class="x" type="button">إغلاق</button></div>`;
+    m.querySelector("[data-copy]").onclick = e => { const b = e.currentTarget; try{ navigator.clipboard.writeText(q.value); b.textContent = "تم النسخ ✓"; }catch(_){} };
+    const bk = m.querySelector(".back"); if(bk) bk.onclick = pick;
+    m.querySelector(".x:last-child").onclick = close;
+  };
   document.addEventListener("keydown", k);
   m.onclick = e => { if(e.target === m) close(); };
-  m.querySelector(".x").onclick = close;
-  m.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => { try{ navigator.clipboard.writeText(b.dataset.copy); b.textContent = "تم النسخ ✓"; }catch(_){} });
+  METHODS.length === 1 ? detail(METHODS[0]) : pick();
   document.body.appendChild(m); document.body.classList.add("lock");
-  m.querySelector(".x").focus();
 }
 if(SHOP.length){
   document.getElementById("shop").hidden = false;
@@ -520,7 +540,7 @@ if(SHOP.length){
   SHOP.forEach((x,i) => {
     const card = /^https:\/\//i.test(x.payUrl || "") ? new URL(x.payUrl).href : "";
     document.getElementById("shopList").insertAdjacentHTML("beforeend",
-      `<div class="pc${x.hot ? " hot" : ""} rv" style="--i:${i}">${x.hot && x.badge ? `<span class="badge">${esc(x.badge)}</span>` : ""}<span class="kind">ملف رقمي</span><h3>${esc(x.title)}</h3><div class="pr"><span class="cur">$</span><b data-n="${esc(x.price)}">${esc(x.price)}</b></div>${+x.priceEgp ? `<p class="egp">≈ ${esc(x.priceEgp)} جنيه مصري</p>` : ""}<p class="pu">${esc(x.unit)}</p><ul>${(x.features||[]).map(f => `<li>${esc(f)}</li>`).join("")}</ul>${MANUAL ? `<button class="btn main" type="button" data-manual="${i}">${esc(x.btn || "اشترِ الآن")}</button>` : ""}${card ? `<a class="btn${MANUAL ? "" : " main"}" href="${esc(card)}" target="_blank" rel="noopener" style="margin-top:${MANUAL ? 10 : 0}px">${MANUAL ? "الدفع بالبطاقة" : esc(x.btn || "اشترِ الآن")}</a>` : ""}<p class="secure">${MANUAL ? "تحويل مباشر بدون رسوم · يصلك الملف بعد التأكيد" : "دفع آمن بالبطاقة · يصلك الملف بعد الدفع"}</p></div>`);
+      `<div class="pc${x.hot ? " hot" : ""} rv" style="--i:${i}">${x.hot && x.badge ? `<span class="badge">${esc(x.badge)}</span>` : ""}${/^images\/[\w.\-]+$/.test(x.img || "") ? `<div class="pimg"><img src="${esc(x.img)}" alt="${esc(x.title)}" loading="lazy"></div>` : ""}<span class="kind">ملف رقمي</span><h3>${esc(x.title)}</h3><div class="pr"><span class="cur">$</span><b data-n="${esc(x.price)}">${esc(x.price)}</b></div>${+x.priceEgp ? `<p class="egp">≈ ${esc(x.priceEgp)} جنيه مصري</p>` : ""}<p class="pu">${esc(x.unit)}</p><ul>${(x.features||[]).map(f => `<li>${esc(f)}</li>`).join("")}</ul>${MANUAL ? `<button class="btn main" type="button" data-manual="${i}">${esc(x.btn || "اشترِ الآن")}</button>` : ""}${card ? `<a class="btn${MANUAL ? "" : " main"}" href="${esc(card)}" target="_blank" rel="noopener" style="margin-top:${MANUAL ? 10 : 0}px">${MANUAL ? "الدفع بالبطاقة" : esc(x.btn || "اشترِ الآن")}</a>` : ""}${MANUAL && METHODS.some(q => q.logo) ? `<div class="pays">${METHODS.filter(q => /^images\/[\w.\-]+$/.test(q.logo || "")).map(q => `<img src="${esc(q.logo)}" alt="${esc(q.name)}" title="${esc(q.name)}">`).join("")}</div>` : ""}<p class="secure">${MANUAL ? "تحويل مباشر بدون رسوم · يصلك الملف بعد التأكيد" : "دفع آمن بالبطاقة · يصلك الملف بعد الدفع"}</p></div>`);
   });
   document.querySelectorAll("[data-manual]").forEach(b => b.onclick = () => payModal(SHOP[+b.dataset.manual]));
 }else{

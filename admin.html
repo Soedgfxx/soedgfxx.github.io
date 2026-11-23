@@ -209,13 +209,13 @@ function render(){
       hot.onchange = () => { x.hot = hot.checked; badge.style.display = x.hot ? "" : "none"; markDirty(); };
       const ft = h("textarea",{rows:4}); ft.value = (x.features||[]).join("\n");
       ft.oninput = () => { x.features = ft.value.split("\n").map(s => s.trim()).filter(Boolean); markDirty(); };
-      P.append(h("div",{class:"card"}, field("اسم الباكيدج",x,"title"), field("السعر بالدولار",x,"price",{type:"number",inputmode:"decimal"}), field("السعر بالجنيه المصري",x,"priceEgp",{type:"number",inputmode:"decimal",hint:"يظهر بجانب سعر الدولار."}), field("سطر تحت السعر",x,"unit",{ph:"ملف رقمي · تحميل فوري"}),
+      P.append(h("div",{class:"card"}, imgField("صورة الباكيدج (16:9)",x,"img","shop"), field("اسم الباكيدج",x,"title"), field("السعر بالدولار",x,"price",{type:"number",inputmode:"decimal"}), field("السعر بالجنيه المصري",x,"priceEgp",{type:"number",inputmode:"decimal",hint:"يظهر بجانب سعر الدولار."}), field("سطر تحت السعر",x,"unit",{ph:"ملف رقمي · تحميل فوري"}),
         h("label",{class:"f"},h("span",{},"المحتويات (كل واحدة في سطر)"),ft),
         field("رابط الدفع بالبطاقة (اختياري)",x,"payUrl",{type:"url",dir:"ltr",ph:"https://...",hint:"اتركه فارغاً إذا تبيع بالتحويل فقط (إنستاباي / فودافون كاش)."}),
         field("نص الزر",x,"btn",{ph:"اشترِ الآن"}),
         h("label",{class:"chk"},hot,"باقة مميزة (إطار متوهج)"), badge, ctrls(C.shop,i,"هذا الباكيدج")));
     });
-    P.append(addBtn("إضافة باكيدج", () => C.shop.push({title:"",price:0,priceEgp:0,unit:"",features:[],payUrl:"",btn:"",hot:false,badge:""})));
+    P.append(addBtn("إضافة باكيدج", () => C.shop.push({img:"",title:"",price:0,priceEgp:0,unit:"",features:[],payUrl:"",btn:"",hot:false,badge:""})));
   }
   if(tab === "settings"){
     if(C) P.append(h("section",{class:"grp"}, h("h2",{},"التواصل"), h("div",{class:"card"},
